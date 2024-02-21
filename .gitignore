@@ -1,2 +1,5 @@
 run
 data.in
+diff.run
+dbg.run
+install.sh

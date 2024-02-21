@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #define MAXN 100005
-#define MAXM 500005
+#define MAXM 810005
 #define LARGE 1000000001
 #define ckmin(x,y) ((x)<(y)?(x):(x=y))
 
@@ -47,7 +47,7 @@ int main(){
     int u,v,w;
     for (int i=1;i<=m;i++){
         scanf("%d%d%d",&u,&v,&w);
-        add(u,v,w);add(v,u,w);
+        add(u,v,w);
     }
     res[s]=0;
     dijkstra();

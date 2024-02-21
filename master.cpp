@@ -1,6 +1,6 @@
 #include<bits/stdc++.h>
 
-const int MaxN = 100010, MaxM = 500010;
+const int MaxN = 100010, MaxM = 810010;
 
 struct edge
 {
