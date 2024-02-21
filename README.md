@@ -18,7 +18,11 @@ chmod 777 ./install.sh
 ```
 使用:
 ```
-oj {check,race,single_data} [my file] [master file] [data generator file]
+oj {check,race} [-i infile] [options]
+options:
+    -sd         specific data without data generator.
+    -t time     specific time limit (ms). default: 1200.
+    -vg         use valgrind memory checker.
 ```
 
 可以使用 洛谷的`CYaRon`进行更加优秀的数据生成

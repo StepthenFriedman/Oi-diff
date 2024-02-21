@@ -7,8 +7,8 @@
 #include <dirent.h>
 #include <errno.h>
 
-#define TIME_LIMIT 	100000000
 #define BILLION 	1000000000
+long int TIME_LIMIT=1200000000;
 
 void ask(){
 	printf("do you wish to continue [y/n]?\n");
@@ -30,23 +30,33 @@ char file_1[3][200]={"mine.c","master.c","gen.c"},
 #define compile_gen		if (system(cmd[2])){\
 							printf("\nfail to compile data generator\n");return 0;}\
 
-#define run_gen			if (system("run/gen.run >data.in")){\
+#define run_gen			if (system("run/gen.run >data/gen.in")){\
 							printf("\ndata generator generated runtime error at test %llu\n",n);ask();}\
 
-#define run_mine		if (system("run/mine.run <data.in >run/mine.out")){\
+#define run_mine		if (system("run/mine.run <data/gen.in >data/mine.out")){\
 							printf("\n[Runtime Error]\nat test %llu\n",n);ask();}\
 
-#define run_master		if (system("run/master.run <data.in >run/master.out")){\
+#define run_master		if (system("run/master.run <data/gen.in >data/master.out")){\
 							printf("\nmaster program generated runtime error at test %llu\n",n);ask();}\
 
+#define compare			if(system("diff data/master.out data/mine.out")) printf("\n[Wrong Answer] at test %llu\n",n),ask();\
+						else printf("[Acceppted]\n");\
+
+#define tle				if (diff1>TIME_LIMIT){\
+							printf("[Time Limit Exceeded] at test %llu\ntime cost:%.3fs\n",n,(double)diff1/BILLION);ask();}\
+
 int main(int argc, char **argv){
-	unsigned long long n=1;
+	
+	char specific_data=0;
+	unsigned long long n=0;
 	struct timespec start, end1, end2;
 	uint64_t diff1,diff2;
 
-	if (argc>=3) strcpy(file_1[0],argv[2]);
-	if (argc>=4) strcpy(file_1[1],argv[3]);
-	if (argc>=5) strcpy(file_1[2],argv[4]);
+	for (int i=2,j=0;i<argc;i++){
+		if (i<argc-1 && !strcmp(argv[i],"-i")) strcpy(file_1[j++],argv[i]);
+		else if (i<argc-1 && !strcmp(argv[i],"-t")) sscanf(argv[i+1],"%ld",&TIME_LIMIT),TIME_LIMIT*=1000000;
+		else if (!strcmp(argv[i],"-sd")) specific_data=1; 
+	}
 
 	for (int i=0;i<3;i++){
 		if (access(file_1[i],F_OK)){
@@ -64,16 +74,28 @@ int main(int argc, char **argv){
 	if (dir) closedir(dir);
  	else if (ENOENT == errno) system("mkdir run");
 
+	dir = opendir("data");
+	if (dir) closedir(dir);
+ 	else if (ENOENT == errno) system("mkdir data");
+
 	strcat(cmd[0],strcat(target_file[0]," -o run/mine.run -O2 -Wall -Wextra"));
 	strcat(cmd[1],strcat(target_file[1]," -o run/master.run -O2 -w"));
 	strcat(cmd[2],strcat(target_file[2]," -o run/gen.run -O2 -Wall -Wextra"));
-
-	printf("%s\n%s\n%s\n",cmd[0],cmd[1],cmd[2]);
 
 	if (argc>=2){
 		if (!strcmp(argv[1],"check")){
 			compile_mine;
 			compile_master;
+			if (specific_data){
+				clock_gettime(CLOCK_MONOTONIC, &start);
+				run_mine;
+				clock_gettime(CLOCK_MONOTONIC, &end1);
+				diff1 = BILLION*(end1.tv_sec-start.tv_sec)+end1.tv_nsec-start.tv_nsec;
+				tle;
+				run_master;
+				compare;
+				return 0;
+			}
 			compile_gen;
 			while(1){
 				n++;
@@ -82,22 +104,31 @@ int main(int argc, char **argv){
 				run_mine;
 				clock_gettime(CLOCK_MONOTONIC, &end1);
 				diff1 = BILLION*(end1.tv_sec-start.tv_sec)+end1.tv_nsec-start.tv_nsec;
-				if (diff1>TIME_LIMIT){
-					printf("[Time Limit Exceeded] at test %llu\ntime cost:%.3fs\n",n,(double)diff1/BILLION);
-					ask();
-				}
+				tle;
 				run_master;
-				if(system("diff run/master.out run/mine.out")){
-					printf("\n[Wrong Answer] at test %llu\n",n);
-					ask();
-				}
-				else printf("[Acceppted]\n");
+				compare;
 			}
 		}
 		else if (!strcmp(argv[1],"race")){
 			compile_mine;
 			compile_master;
 			compile_gen;
+			if (specific_data){
+				clock_gettime(CLOCK_MONOTONIC, &start);
+				run_mine;
+				clock_gettime(CLOCK_MONOTONIC, &end1);
+				run_master;
+				clock_gettime(CLOCK_MONOTONIC, &end2);
+
+				diff1 = BILLION*(end1.tv_sec-start.tv_sec)+end1.tv_nsec-start.tv_nsec;
+				diff2 = BILLION*(end2.tv_sec-end1.tv_sec)+end2.tv_nsec-end1.tv_nsec;
+
+				tle;
+				if (diff1<diff2) printf("\t\t\t[faster] by %ld ns\n",diff2-diff1);
+				else printf("[slower] by %ld ns\n",diff1-diff2);
+				compare;
+				return 0;
+			}
 			while(1){
 				n++;
 				run_gen;
@@ -110,26 +141,16 @@ int main(int argc, char **argv){
 				diff1 = BILLION*(end1.tv_sec-start.tv_sec)+end1.tv_nsec-start.tv_nsec;
 				diff2 = BILLION*(end2.tv_sec-end1.tv_sec)+end2.tv_nsec-end1.tv_nsec;
 
-				if (diff1<diff2) printf("\t\t\t[faster] by %ld ns\n",diff2-diff1);
-				else printf("[slower] by %ld ns\n",diff1-diff2);
+				tle;
+				compare;
+				if (diff1<diff2) printf("\t\t\t\t\t\t[faster] by %ld ns\n",diff2-diff1);
+				else printf("\t\t\t[slower] by %ld ns\n",diff1-diff2);
 			}
 		}
-		else if (!strcmp(argv[1],"single_data")){
-			compile_mine;
-			compile_master;
-			clock_gettime(CLOCK_MONOTONIC, &start);
-			run_mine;
-			clock_gettime(CLOCK_MONOTONIC, &end1);
-			diff1 = BILLION*(end1.tv_sec-start.tv_sec)+end1.tv_nsec-start.tv_nsec;
-			if (diff1>TIME_LIMIT){
-				printf("[Time Limit Exceeded] at test %llu with %.3fs\n",n,((double)diff1)/(double)BILLION);
-			}
-			run_master;
-			if(system("diff run/master.out run/mine.out")){
-				printf("\n[Wrong Answer] at test %llu\n",n);
-			}
-			else printf("[Acceppted]\n");
+		else if (!strcmp(argv[1],"update")){
+			if (system("wget "))
 		}
-	}
+		else printf("no command specific.\n");
+	}else printf("no command specific.\n");
 	return 0;
 }
