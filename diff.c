@@ -4,8 +4,8 @@
 
 int main(){
 	int n=0;
-	if (system("gcc mine.c -o run/mine.run -Wall -Wextra >log.txt")){
-		if (system("g++ mine.cpp -o run/mine.run -Wall -Wextra >log.txt")){
+	if (system("gcc mine.c -o run/mine.run -Wall -Wextra")){
+		if (system("g++ mine.cpp -o run/mine.run -Wall -Wextra")){
 			printf("[Compile Error]\n");
 			return 0;
 		}
@@ -19,12 +19,12 @@ int main(){
 	}
 	while(1){
 		n++;
-		system("run/gen.run >run/t.in");
-		if (system("run/mine.run <run/t.in >run/mine.out")){
+		system("run/gen.run >data.in");
+		if (system("run/mine.run <data.in >run/mine.out")){
 			printf("[Runtime Error at test %d]\n",n);
 			return 0;
 		}
-		system("run/master.run <run/t.in >run/master.out");
+		system("run/master.run <data.in >run/master.out");
 		if(system("diff run/master.out run/mine.out")){
 			printf("[Wrong Answer at test %d]\n",n);
 			return 0;
