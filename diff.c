@@ -148,7 +148,19 @@ int main(int argc, char **argv){
 			}
 		}
 		else if (!strcmp(argv[1],"update")){
-			if (system("wget "))
+			printf("downloading source code...\n");
+			if (system("wget https://github.com/StepthenFriedman/Oi-diff/blob/master/diff.c")){
+				printf("cannot download source file, update failed.\n");
+				return 1;
+			}
+			if (system("wget https://github.com/StepthenFriedman/Oi-diff/blob/master/install.sh")){
+				printf("cannot download build script.\ncreating build script...\n");
+
+				FILE* script=fopen("./install.sh", "w");
+				fprintf(script,"gcc diff.c -o diff.run\nsudo rm -f ~/.local/bin/oj\nsudo rm -f ~/.local/bin/oj\nsudo cp  ./diff.run ~/.local/bin/oj\n");
+				printf("successfully created build script.\n");
+			}
+			if (system("chmod 777 ./install.sh")) printf("cannot run build script.\nplease run manually.\n");
 		}
 		else printf("no command specific.\n");
 	}else printf("no command specific.\n");
