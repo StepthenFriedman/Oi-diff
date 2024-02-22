@@ -52,6 +52,17 @@ int main(int argc, char **argv){
 	struct timespec start, end1, end2;
 	uint64_t diff1,diff2;
 
+	if (argc>=2 && !strcmp(argv[1],"update")){
+		printf("downloading source code...\n");
+		system("rm -rf Oi-diff");
+		if (system("git clone https://github.com/StepthenFriedman/Oi-diff.git")){
+			printf("cannot download source file, update failed.\n");
+			return 1;
+		}
+		if (system("cd Oi-diff && chmod 777 ./install.sh && ./install.sh")) printf("cannot run build script.\nplease run manually.\n");
+		return 0;
+	}
+
 	for (int i=2,j=0;i<argc;i++){
 		if (i<argc-1 && !strcmp(argv[i],"-i")) strcpy(file_1[j++],argv[i]);
 		else if (i<argc-1 && !strcmp(argv[i],"-t")) sscanf(argv[i+1],"%ld",&TIME_LIMIT),TIME_LIMIT*=1000000;
@@ -146,21 +157,6 @@ int main(int argc, char **argv){
 				if (diff1<diff2) printf("\t\t\t\t\t\t[faster] by %ld ns\n",diff2-diff1);
 				else printf("\t\t\t[slower] by %ld ns\n",diff1-diff2);
 			}
-		}
-		else if (!strcmp(argv[1],"update")){
-			printf("downloading source code...\n");
-			if (system("wget https://github.com/StepthenFriedman/Oi-diff/blob/master/diff.c")){
-				printf("cannot download source file, update failed.\n");
-				return 1;
-			}
-			if (system("wget https://github.com/StepthenFriedman/Oi-diff/blob/master/install.sh")){
-				printf("cannot download build script.\ncreating build script...\n");
-
-				FILE* script=fopen("./install.sh", "w");
-				fprintf(script,"gcc diff.c -o diff.run\nsudo rm -f ~/.local/bin/oj\nsudo rm -f ~/.local/bin/oj\nsudo cp  ./diff.run ~/.local/bin/oj\n");
-				printf("successfully created build script.\n");
-			}
-			if (system("chmod 777 ./install.sh")) printf("cannot run build script.\nplease run manually.\n");
 		}
 		else printf("no command specific.\n");
 	}else printf("no command specific.\n");
