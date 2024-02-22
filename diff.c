@@ -46,7 +46,6 @@ char file_1[3][200]={"mine.c","master.c","gen.c"},
 							printf("[Time Limit Exceeded] at test %llu\ntime cost:%.3fs\n",n,(double)diff1/BILLION);ask();}\
 
 int main(int argc, char **argv){
-	
 	char specific_data=0;
 	unsigned long long n=0;
 	struct timespec start, end1, end2;
@@ -60,6 +59,10 @@ int main(int argc, char **argv){
 			return 1;
 		}
 		if (system("cd Oi-diff && chmod 777 ./install.sh && ./install.sh")) printf("cannot run build script.\nplease run manually.\n");
+		printf("successfully updated offline-judge.\nremove source code [y/n]?\n");
+		if (getchar()=='y' && system("rm -rf Oi-diff")){
+			printf("cannot remove source code.\nplease do it manually.\n");
+		}
 		return 0;
 	}
 
