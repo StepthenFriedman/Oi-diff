@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #define MAXN 100005
-#define MAXM 810005
+#define MAXM 8100005
 #define LARGE 1000000001
 #define ckmin(x,y) ((x)<(y)?(x):(x=y))
 

@@ -2,14 +2,12 @@
 #include <cstdlib>
 #include <ctime>
 
-int n=900;
 
 int main(){
 	srand(time(0));
-	printf("%d %d 1\n",n,(n*(n-1))/2);
+	int n=100000;
+	printf("100000000 %d\n",n);
 	for(int i=1;i<=n;i++){
-		for (int j=i+1;j<=n;j++){
-			printf("%d %d %d\n",i,j,(rand()%2000)+1);
-		}
+		printf("%d\n",i);
 	}
 }
