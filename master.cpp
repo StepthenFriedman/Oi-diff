@@ -1,93 +1,81 @@
-#include <bits/stdc++.h>
-#include <cstdio>
-#define ckmin(x,y) ((x)<(y)?(x):(x=y))
+#include<bits/stdc++.h>
 
-const int MAXN=100005,MAXM=500005,LARGE=1000000001;
+const int MaxN = 100010, MaxM = 810010;
 
-typedef struct Edge{
-    int next,to,w;
-}Edge;
+struct edge
+{
+    int to, dis, next;
+};
+
+edge e[MaxM];
+int head[MaxN], dis[MaxN], cnt;
+bool vis[MaxN];
+int n, m, s;
+
+inline void add_edge( int u, int v, int d )
+{
+    cnt++;
+    e[cnt].dis = d;
+    e[cnt].to = v;
+    e[cnt].next = head[u];
+    head[u] = cnt;
+}
 
 struct node
 {
-    int res;
-    int id;
-    bool operator <(const node &x)const
+    int dis;
+    int pos;
+    bool operator <( const node &x )const
     {
-        return x.res<res;
+        return x.dis < dis;
     }
 };
 
-int count=0;
-int head[MAXM];
-Edge edge[MAXM];
-
-int res[MAXN];
-char itered[MAXN]={0};
-
-void add(int u,int v,int w)
-{
-    edge[count].w = w;
-    edge[count].to = v;
-    edge[count].next = head[u];
-    head[u] = count++;
-}
-
-int n;
 std::priority_queue<node> q;
 
-void dijkstra(){
-    res[1]=0;
-    q.push((node){0,1});
-    while(!q.empty()){
-        node tmp=q.top();
-        q.pop();
-        int r=tmp.res, id=tmp.id;
-        if (itered[id]) continue;
 
-        itered[id]=1;
-        for (int i=head[id];~i;i=edge[i].next){
-            int v=edge[i].to;
-            if (res[v]>res[id]+edge[i].w){
-                res[v]=res[id]+edge[i].w;
-                if (!itered[v]){
-                    q.push((node){res[v],v});
+inline void dijkstra()
+{
+    dis[s] = 0;
+    q.push( ( node ){0, s} );
+    while( !q.empty() )
+    {
+        node tmp = q.top();
+        q.pop();
+        int x = tmp.pos, d = tmp.dis;
+        if( vis[x] )
+            continue;
+        vis[x] = 1;
+        for( int i = head[x]; i; i = e[i].next )
+        {
+            int y = e[i].to;
+            if( dis[y] > dis[x] + e[i].dis )
+            {
+                dis[y] = dis[x] + e[i].dis;
+                if( !vis[y] )
+                {
+                    q.push( ( node ){dis[y], y} );
                 }
             }
         }
-    }//every point is updated only once.
+    }
 }
 
-/*
-void dijkstra(){
-    for (int t=1;t<=n;t++){
-        int indx=0;
-        for (int i=1;i<=n;i++) if ((!itered[i]) && res[indx]>res[i]){
-            indx=i;
-        }
-        itered[indx]=1;
 
-        for (int i=head[indx];~i;i=edge[i].next){
-            ckmin(res[edge[i].to],res[indx]+edge[i].w);
-        }
-    }
-}*/
-
-int main(){
-    int m,s;
+int main()
+{
     //freopen("../../data/P4779_1.in","r",stdin);
     //freopen("../../data/P4779.out","w",stdout);
-    
-    scanf("%d%d%d",&n,&m,&s);
-    memset(head,-1,(m+2)*sizeof(int));
-    std::fill_n(res,n+2,LARGE);
-    
-    int u,v,w;
-    for (int i=1;i<=m;i++){
-        scanf("%d%d%d",&u,&v,&w);
-        add(u,v,w);
+    scanf( "%d%d%d", &n, &m, &s );
+    for(int i = 1; i <= n; ++i)dis[i] = 0x7fffffff;
+    for( register int i = 0; i < m; ++i )
+    {
+        register int u, v, d;
+        scanf( "%d%d%d", &u, &v, &d );
+        add_edge( u, v, d );
     }
-    res[s]=0;
     dijkstra();
-    for (int i=1;i<=n;i++) printf("%d ",res[i]);
+    for( int i = 1; i <= n; i++ )
+        printf( "%d ", dis[i] );
+    return 0;
 }

@@ -25,7 +25,7 @@ options:
     -t          set time limit (ms). default: 1200.
     -m          set memory limit (KB). default: 2512 (that is 2.4 MB). only work with -vg.
     -mle=<bool> false by default. detecy MLE with valgrind massif. memory statistics may vary from online judge, and the analyzing process will be longer.
-    -tle=<bool> true by default. detect TLE.
+    -tle=<bool> true by default. detect TLE. time cost statistics may vary from online judge.
     -wa=<bool>  true by default. detect WA.
 
 oj verbs:

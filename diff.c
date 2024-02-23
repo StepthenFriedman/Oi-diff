@@ -50,7 +50,7 @@ void ask(){
 char file_1[3][200]={"mine.c","master.c","gen.c"},
 	 file_2[3][200]={"mine.cpp","master.cpp","gen.cpp"},
 	 cmd[3][200]={"\0","\0","\0"},
-	 build_cmd[200]="cat ",
+	 build_cmd[200]="cat ",clean_cmd[200]="rm -f ",
 
 	*target_file[3]={NULL,NULL,NULL};
 
@@ -122,6 +122,11 @@ int main(int argc, char **argv){
 				build_cmd[4]='\0';
 				strcat(build_cmd,argv[i+1]);
 				strcat(build_cmd," >");
+				
+				clean_cmd[6]='\0';
+				strcat(clean_cmd,file_1[j]);
+				system(clean_cmd);
+
 				if (argv[i+1][strlen(argv[i+1])-1]=='c')
 					strcat(build_cmd,file_1[j]);
 				else
@@ -178,7 +183,7 @@ int main(int argc, char **argv){
  	else if (ENOENT == errno) system("mkdir data");
 
 	strcat(cmd[0],strcat(target_file[0]," -o run/mine.run -O2 -Wall -Wextra"));
-	strcat(cmd[1],strcat(target_file[1]," -o run/master.run -O2 -w"));
+	strcat(cmd[1],strcat(target_file[1]," -o run/master.run -O2 -Wall -Wextra"));
 	strcat(cmd[2],strcat(target_file[2]," -o run/gen.run -O2 -Wall -Wextra"));
 
 	if (!mod){
