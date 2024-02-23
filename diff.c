@@ -106,7 +106,7 @@ int main(int argc, char **argv){
 			}
 			return 0;
 		}
-		else if (!strcmp(argv[1],"version")) {printf("offline judge v 0.1.0\n");return 0;}
+		else if (!strcmp(argv[1],"version")) {printf("offline judge v 0.1.1\n");return 0;}
 		else if (!strcmp(argv[1],"build")) mod=BUILD;
 		else if (!strcmp(argv[1],"run")) mod=RUN;
 		else if (!strcmp(argv[1],"check")) mod=CHECK;
@@ -117,8 +117,16 @@ int main(int argc, char **argv){
 		if (i<argc-1 && !strcmp(argv[i],"-i")) strcpy(file_1[j++],argv[i+1]);
 		else if (i<argc-1 && !strcmp(argv[i],"-t")) sscanf(argv[i+1],"%ld",&TIME_LIMIT),TIME_LIMIT*=1000000;
 		else if (i<argc-1 && !strcmp(argv[i],"-m")) sscanf(argv[i+1],"%ld",&MEMORY_LIMIT),MEMORY_LIMIT*=1000;
-		else if (!strcmp(argv[i],"-sd")) specific_data=1;
 		else if (!strcmp(argv[i],"-vg")) use_valgrind=1;
+		else if (strstr(argv[i],"-sd")!=NULL){
+			specific_data=1;
+			if (argv[i][3]=='='){
+				char cmd[100]="cat ";
+				strcat(cmd,argv[i]+4);
+				strcat(cmd," >data/gen.in");
+				if (system(cmd)) printf("failed to run command %s\n",cmd);
+			}
+		}
 		else if (strstr(argv[i],"-tle=false")!=NULL) detect_tle=0;
 	}
 
@@ -172,16 +180,13 @@ int main(int argc, char **argv){
 		run_mine;
 		if (detect_tle) clock_gettime(CLOCK_MONOTONIC, &end1);
 
-		if (mod>=CHECK) {run_master;}
-		
+		if (mod>=CHECK) {run_master;}		
 		if (mod>=RACE) clock_gettime(CLOCK_MONOTONIC, &end2);
 
 		if (detect_tle) diff1 = BILLION*(end1.tv_sec-start.tv_sec)+end1.tv_nsec-start.tv_nsec;
 		if (mod>=RACE) diff2 = BILLION*(end2.tv_sec-end1.tv_sec)+end2.tv_nsec-end1.tv_nsec;
-
 		if (detect_tle) {tle;}
 		if (use_valgrind){run_with_vg;}
-
 		if (mod>=RACE){
 			if (diff1<diff2) printf("\t\t\t\t\t\t[faster] by %ld ns\n",diff2-diff1);
 			else printf("\b\t\t\t[slower] by %ld ns\n",diff1-diff2);

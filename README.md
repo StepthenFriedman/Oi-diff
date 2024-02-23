@@ -20,7 +20,8 @@ chmod 777 ./install.sh
 ```
 oj {build,version,run,check,race,update} [-i infile] [options]
 options:
-    -sd         run on specific data without data generator.
+    -sd         run on specific data (data/gen.in) without data generator.
+    -sd=<file>  run on specific data without data generator.
     -t          set time limit (ms). default: 1200.
     -m          set memory limit (KB). default: 2512 (that is 2.4 MB). only work with -vg.
     -vg         enable valgrind massif, support MLE detect. memory statistics may vary from online judge.
@@ -31,7 +32,7 @@ oj check
 oj update
 oj check -i myprogram.cpp -i theirprogram.cpp -i generator.cpp -vg
 ```
-
+源码文件只有diff.c
 可以使用 洛谷的`CYaRon`进行更加优秀的数据生成
 
 
