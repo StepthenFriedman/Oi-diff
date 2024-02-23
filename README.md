@@ -1,6 +1,6 @@
 ## Oi - Diff
 
-> 一个 Oi 自用对拍程序
+> 一个 Oi 自用对拍程序,支持检测 WA,TLE,MLE,RE 和速度对比.
 
 <img src="https://img.shields.io/badge/Author-woshiluo-blue.svg?style=flat-square"/>
 
@@ -18,19 +18,26 @@ chmod 777 ./install.sh
 ```
 使用:
 ```
-oj {build,version,run,check,race,update} [-i infile] [options]
+oj {build,version,run,check,race,update} [-i input_file] [options]
 options:
     -sd         run on specific data (data/gen.in) without data generator.
     -sd=<file>  run on specific data without data generator.
     -t          set time limit (ms). default: 1200.
     -m          set memory limit (KB). default: 2512 (that is 2.4 MB). only work with -vg.
-    -vg         enable valgrind massif, support MLE detect. memory statistics may vary from online judge.
+    -mle=<bool> false by default. detecy MLE with valgrind massif. memory statistics may vary from online judge, and the analyzing process will be longer.
     -tle=<bool> true by default. detect TLE.
+    -wa=<bool>  true by default. detect WA.
 
-example:
-oj check
+oj verbs:
+    build       create mine.c/cpp, master.c/cpp, gen.c/cpp according to input files.
+    run         compile and run mine.c/cpp. cannot detect WA.
+    check       compile and run mine.c/cpp, master.c/cpp, gen.c/cpp and compare result.
+    race        compile and run mine.c/cpp, master.c/cpp, gen.c/cpp and compare time cost.
+
+example useage:
 oj update
-oj check -i myprogram.cpp -i theirprogram.cpp -i generator.cpp -vg
+oj build -i myprogram.cpp -i theirprogram.cpp -i generator.cpp
+oj check -mle=true
 ```
 源码文件只有diff.c
 可以使用 洛谷的`CYaRon`进行更加优秀的数据生成

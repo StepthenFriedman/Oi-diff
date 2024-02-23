@@ -50,41 +50,42 @@ void ask(){
 char file_1[3][200]={"mine.c","master.c","gen.c"},
 	 file_2[3][200]={"mine.cpp","master.cpp","gen.cpp"},
 	 cmd[3][200]={"\0","\0","\0"},
+	 build_cmd[200]="cat ",
 
-	*target_file[3];
+	*target_file[3]={NULL,NULL,NULL};
 
-#define compile_mine 	if (system(cmd[0])){\
-							printf("\n[Compile Error]\n");return 0;}
+#define compile_mine 	{if (system(cmd[0])){\
+							printf("\n[Compile Error]\n");return 0;}}
 						
-#define compile_master	if (system(cmd[1])){\
-							printf("\nfail to compile master program\n");return 0;}
+#define compile_master	{if (system(cmd[1])){\
+							printf("\nfail to compile master program\n");return 0;}}
 
-#define compile_gen		if (system(cmd[2])){\
-							printf("\nfail to compile data generator\n");return 0;}
+#define compile_gen		{if (system(cmd[2])){\
+							printf("\nfail to compile data generator\n");return 0;}}
 
-#define run_gen			if (system("run/gen.run >data/gen.in")){\
-							printf("\ndata generator generated runtime error at test %llu\n",n);ask();}
+#define run_gen			{if (system("run/gen.run >data/gen.in")){\
+							printf("\ndata generator generated runtime error at test %llu\n",n);ask();}}
 
-#define run_mine		if (system("run/mine.run <data/gen.in >data/mine.out")){\
-							printf("\n[Runtime Error]\nat test %llu\n",n);ask();}
+#define run_mine		{if (system("run/mine.run <data/gen.in >data/mine.out")){\
+							printf("\n[Runtime Error]\nat test %llu\n",n);ask();}}
 
-#define run_master		if (system("run/master.run <data/gen.in >data/master.out")){\
-							printf("\nmaster program generated runtime error at test %llu\n",n);ask();}
+#define run_master		{if (system("run/master.run <data/gen.in >data/master.out")){\
+							printf("\nmaster program generated runtime error at test %llu\n",n);ask();}}
 
-#define compare			if(system("diff data/master.out data/mine.out")) printf("\n[Wrong Answer] at test %llu\n",n),ask();\
-						else printf("[Acceppted]\n");
+#define compare			{if(system("diff data/master.out data/mine.out")) printf("\n[Wrong Answer] at test %llu\n",n),ask();\
+						else printf("[Acceppted]\n");}
 
-#define tle				if (diff1>TIME_LIMIT){\
-							printf("[Time Limit Exceeded] at test %llu\ntime cost:%.3fs\n",n,(double)diff1/BILLION);ask();}
+#define tle				{if (diff1>TIME_LIMIT){\
+							printf("[Time Limit Exceeded] at test %llu\ntime cost:%.3fs\n",n,(double)diff1/BILLION);ask();}}
 
-#define run_with_vg		system("valgrind -q --tool=massif --stacks=yes --heap=yes --massif-out-file=\"run/log.txt\" run/mine.run <data/gen.in >data/mine.out");\
+#define run_with_vg		{system("valgrind -q --tool=massif --stacks=yes --heap=yes --massif-out-file=\"run/log.txt\" run/mine.run <data/gen.in >data/mine.out");\
 						long memory=read_massif_log();\
 						if (memory>MEMORY_LIMIT){\
 							printf("[Memory Limit Exceeded] at test %llu\nmemory cost:%.3fmb\n",n,(double)memory/1000000);ask();}\
-						else printf("Memory cost:%.3fmb\n",(double)memory/1000000);
+						else printf("Memory cost:%.3fmb\n",(double)memory/1000000);}
 
 int main(int argc, char **argv){
-	char specific_data=0,use_valgrind=0,detect_tle=1;
+	char specific_data=0,detect_mle=0,detect_tle=1,detect_wa=1;
 	unsigned long long n=0;
 	struct timespec start, end1, end2;
 	uint64_t diff1,diff2;
@@ -114,10 +115,26 @@ int main(int argc, char **argv){
 	}
 
 	for (int i=2,j=0;i<argc;i++){
-		if (i<argc-1 && !strcmp(argv[i],"-i")) strcpy(file_1[j++],argv[i+1]);
+		if (i<argc-1 && !strcmp(argv[i],"-i")){
+			if (access(argv[i+1],F_OK)) printf("directory does not exists at \"%s\"!\n",argv[i+1]);
+			target_file[j]=argv[i+1];
+			if (mod==BUILD){
+				build_cmd[4]='\0';
+				strcat(build_cmd,argv[i+1]);
+				strcat(build_cmd," >");
+				if (argv[i+1][strlen(argv[i+1])-1]=='c')
+					strcat(build_cmd,file_1[j]);
+				else
+					strcat(build_cmd,file_2[j]);
+				if (system(build_cmd)) printf("fail to initialize file!\n");
+			}
+			j++;
+		}
 		else if (i<argc-1 && !strcmp(argv[i],"-t")) sscanf(argv[i+1],"%ld",&TIME_LIMIT),TIME_LIMIT*=1000000;
 		else if (i<argc-1 && !strcmp(argv[i],"-m")) sscanf(argv[i+1],"%ld",&MEMORY_LIMIT),MEMORY_LIMIT*=1000;
-		else if (!strcmp(argv[i],"-vg")) use_valgrind=1;
+		else if (!strcmp(argv[i],"-mle=true")) detect_mle=1;
+		else if (!strcmp(argv[i],"-tle=false")) detect_tle=0;
+		else if (!strcmp(argv[i],"-wa=false")) detect_wa=0;
 		else if (strstr(argv[i],"-sd")!=NULL){
 			specific_data=1;
 			if (argv[i][3]=='='){
@@ -127,10 +144,9 @@ int main(int argc, char **argv){
 				if (system(cmd)) printf("failed to run command %s\n",cmd);
 			}
 		}
-		else if (strstr(argv[i],"-tle=false")!=NULL) detect_tle=0;
 	}
 
-	if (use_valgrind){
+	if (detect_mle){
 		FILE* log=fopen("run/log.txt","w");fclose(log);
 		if (system("valgrind --version")){
 			printf("valgrind do not exists.\ninstall [y/n]?\n");
@@ -140,10 +156,10 @@ int main(int argc, char **argv){
 		}
 	}
 
-	for (int i=0;i<3;i++){
+	for (int i=0;i<3;i++) if (!target_file[i]){
 		if (access(file_1[i],F_OK)){
 			if (access(file_2[i],F_OK)){
-				printf("\ndirectory does not exits at %s nor %s\n!",file_1[i],file_2[i]);
+				printf("directory does not exits at %s nor %s\n!",file_1[i],file_2[i]);
 				exit(1);
 			}else target_file[i]=file_2[i];
 		}else target_file[i]=file_1[i];
@@ -151,6 +167,7 @@ int main(int argc, char **argv){
 		if (target_file[i][strlen(target_file[i])-1]=='c') strcpy(cmd[i],"gcc ");
 		else strcpy(cmd[i],"g++ ");
 	}
+	if (mod==BUILD) return 0;
 
 	DIR* dir = opendir("run");
 	if (dir) closedir(dir);
@@ -168,30 +185,28 @@ int main(int argc, char **argv){
 		printf("offline judge, an OI program analyzer.\nversion: 0.1.0\nno command specific.\n");
 		return 0;
 	}
-
 	compile_mine;
-	if (mod==BUILD) return 0;
 	if (mod>=CHECK){compile_master;}
 	if (!specific_data) {compile_gen;}
 	while(1){
 		n++;
 		if (mod>=RUN && !specific_data) {run_gen;}
-		if (detect_tle) clock_gettime(CLOCK_MONOTONIC, &start);
+		if (mod>=RACE || detect_tle) clock_gettime(CLOCK_MONOTONIC, &start);
 		run_mine;
-		if (detect_tle) clock_gettime(CLOCK_MONOTONIC, &end1);
+		if (mod>=RACE || detect_tle) clock_gettime(CLOCK_MONOTONIC, &end1);
 
 		if (mod>=CHECK) {run_master;}		
 		if (mod>=RACE) clock_gettime(CLOCK_MONOTONIC, &end2);
 
-		if (detect_tle) diff1 = BILLION*(end1.tv_sec-start.tv_sec)+end1.tv_nsec-start.tv_nsec;
+		if (mod>=RACE || detect_tle) diff1 = BILLION*(end1.tv_sec-start.tv_sec)+end1.tv_nsec-start.tv_nsec;
 		if (mod>=RACE) diff2 = BILLION*(end2.tv_sec-end1.tv_sec)+end2.tv_nsec-end1.tv_nsec;
 		if (detect_tle) {tle;}
-		if (use_valgrind){run_with_vg;}
+		if (detect_mle){run_with_vg;}
 		if (mod>=RACE){
 			if (diff1<diff2) printf("\t\t\t\t\t\t[faster] by %ld ns\n",diff2-diff1);
 			else printf("\b\t\t\t[slower] by %ld ns\n",diff1-diff2);
 		}
-		if (mod>=CHECK) {compare;}
+		if (mod>=CHECK && detect_wa) {compare;}
 		if (mod<=RUN) printf("running...\n");
 		if (specific_data) break;
 	}
